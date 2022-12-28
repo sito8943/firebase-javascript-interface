@@ -1,6 +1,6 @@
 // @ts-check
-import db from "./db";
-import {
+const { db } = require("./db");
+const {
   collection,
   doc,
   query,
@@ -11,7 +11,7 @@ import {
   orderBy,
   startAfter,
   deleteDoc,
-} from "firebase/firestore";
+} = require("firebase/firestore");
 
 /**
  * @param {string} table
@@ -109,7 +109,7 @@ const deleteE = async (table, elements) => {
   for (const element of elements) await deleteDoc(doc(db, table, element));
 };
 
-export default {
+module.exports = {
   insert,
   getValue,
   getTable,

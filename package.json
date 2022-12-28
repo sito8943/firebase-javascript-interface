@@ -1,6 +1,6 @@
 {
   "name": "firebase-javascript-interface",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "firebase-javascript-interface",
   "main": "index.js",
   "scripts": {
@@ -24,9 +24,6 @@
   },
   "homepage": "https://github.com/SitoNumbis/firebase-javascript-interface#readme",
   "dependencies": {
-    "chalk": "^5.2.0",
-    "crypto-js": "^4.1.1",
-    "firebase": "^9.15.0",
-    "loading-cli": "^1.1.0"
+    "firebase": "^9.15.0"
   }
 }

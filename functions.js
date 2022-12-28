@@ -10,6 +10,7 @@ import {
   setDoc,
   orderBy,
   startAfter,
+  deleteDoc,
 } from "firebase/firestore";
 
 /**
@@ -99,10 +100,20 @@ const setTable = async (table, newValue) => {
   return true;
 };
 
+/**
+ *
+ * @param {string} table
+ * @param {string[]} elements
+ */
+const deleteE = async (table, elements) => {
+  for (const element of elements) await deleteDoc(doc(db, table, element));
+};
+
 export default {
   insert,
   getValue,
   getTable,
   update,
   setTable,
+  deleteE,
 };

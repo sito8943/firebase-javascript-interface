@@ -1,12 +1,11 @@
 {
   "name": "firebase-javascript-interface",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "firebase-javascript-interface",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "type": "module",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/SitoNumbis/firebase-javascript-interface.git"

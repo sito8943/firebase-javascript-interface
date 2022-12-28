@@ -1,5 +1,5 @@
 // @ts-check
-const { db } = require("./db");
+const { db, initDatabase } = require("./db");
 const {
   collection,
   doc,
@@ -116,4 +116,5 @@ module.exports = {
   update,
   setTable,
   deleteE,
+  initDatabase,
 };

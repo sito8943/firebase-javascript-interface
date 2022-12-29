@@ -4,10 +4,10 @@ const { initializeApp } = require("firebase/app");
 const { getFirestore } = require("firebase/firestore");
 
 // Initialize Firebase
-let app;
+var app;
 
 // Initialize Cloud Firestore and get a reference to the service
-let db;
+var db;
 
 const initDatabase = (
   /** @type {{apiKey: String; authDomain: String; projectId: String; storageBucket: String; messagingSenderId: String; appId: String}} */ config

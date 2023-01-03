@@ -78,9 +78,13 @@ const getTable = async (table, order = "date", page = 1, count = 10000) => {
   const parsedPage = page - 1;
   const first = query(collection(db, table), orderBy(order));
   const querySnapshot = await getDocs(first);
-  return querySnapshot.docs
-    .slice(parsedPage, parsedPage + count)
-    .map((/** @type {{ data: () => object; }} */ doc) => doc.data());
+  const length = querySnapshot.docs.length;
+  return {
+    list: querySnapshot.docs
+      .slice(parsedPage, parsedPage + count)
+      .map((/** @type {{ data: () => object; }} */ doc) => doc.data()),
+    totalPages: Math.ceil(length / count),
+  };
 };
 /**
  *

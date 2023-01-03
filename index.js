@@ -81,7 +81,7 @@ const getTable = async (table, order = "date", page = 1, count = 10000) => {
   const length = querySnapshot.docs.length;
   return {
     list: querySnapshot.docs
-      .slice(parsedPage, parsedPage + count)
+      .slice(parsedPage * count, page * count)
       .map((/** @type {{ data: () => object; }} */ doc) => doc.data()),
     totalPages: Math.ceil(length / count),
   };

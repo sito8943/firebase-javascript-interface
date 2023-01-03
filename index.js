@@ -75,30 +75,13 @@ const getValue = async (table, key) => {
  * @returns array of objects from firebase
  */
 const getTable = async (table, order = "date", page = 1, count = 10000) => {
-  const first = query(collection(db, table), orderBy(order), limit(count));
+  const parsedPage = page - 1;
+  const first = query(collection(db, table), orderBy(order));
   const querySnapshot = await getDocs(first);
-  // every body in the party
-  if (page === 1)
-    return querySnapshot.docs.map((/** @type {{ data: () => any; }} */ doc) =>
-      doc.data()
-    );
-  else {
-    const currentLast = querySnapshot.docs[page * count];
-    if (currentLast) {
-      const next = query(
-        collection(db, table),
-        orderBy(order),
-        startAfter(currentLast),
-        limit(count)
-      );
-      const nextSnapshot = await getDocs(next);
-      return nextSnapshot.docs.map(
-        (/** @type {{ data: () => object; }} */ doc) => doc.data()
-      );
-    }
-  }
+  return querySnapshot.docs
+    .slice(parsedPage, parsedPage + count)
+    .map((/** @type {{ data: () => object; }} */ doc) => doc.data());
 };
-
 /**
  *
  * @param {string} table

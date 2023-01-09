@@ -80,7 +80,7 @@ const getValue = async (table, rQuery) => {
     );
 
     const querySnapshot = await getDocs(q);
-    for (const item of querySnapshot.docs) return item;
+    for (const item of querySnapshot.docs) return item.data();
   } else {
     const dataRef = doc(db, table, rQuery);
     const dataSnap = await getDoc(dataRef);

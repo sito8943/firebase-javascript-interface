@@ -20,12 +20,11 @@ const {
   collection,
   doc,
   query,
-  limit,
+  where,
   getDocs,
   getDoc,
   setDoc,
   orderBy,
-  startAfter,
   deleteDoc,
 } = require("firebase/firestore");
 
@@ -57,14 +56,37 @@ const update = async (table, key, value) => {
 };
 
 /**
- * @param {string} table
- * @param {string} key
+ *
+ * @param {string} comparison
  */
-const getValue = async (table, key) => {
-  const dataRef = doc(db, table, key);
-  const dataSnap = await getDoc(dataRef);
-  if (dataSnap.exists()) return dataSnap.data();
-  return undefined;
+const getComparison = (comparison) => {
+  switch (comparison) {
+    default: // equal
+      return "==";
+  }
+};
+
+/**
+ * @param {string} table
+ * @param {any} rQuery
+ */
+const getValue = async (table, rQuery) => {
+  if (typeof rQuery === "object") {
+    const [attribute, comparison, value] = rQuery;
+    const q = query(
+      collection(db, table),
+      // @ts-ignore
+      where(attribute, getComparison(comparison), value)
+    );
+
+    const querySnapshot = await getDocs(q);
+    for (const item of querySnapshot.docs) return item;
+  } else {
+    const dataRef = doc(db, table, rQuery);
+    const dataSnap = await getDoc(dataRef);
+    if (dataSnap.exists()) return dataSnap.data();
+    return undefined;
+  }
 };
 
 /**

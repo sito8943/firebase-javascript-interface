@@ -1,5 +1,6 @@
 // @ts-check
 
+const e = require("cors");
 const { initializeApp } = require("firebase/app");
 const { getFirestore } = require("firebase/firestore");
 
@@ -92,14 +93,33 @@ const getValue = async (table, rQuery) => {
 /**
  * @param {string} table
  * @param {string} order
+ * @param {string[]} rQuery [attribute, comparison, value]
  * @param {number} page
  * @param {number} count
  * @returns array of objects from firebase
  */
-const getTable = async (table, order = "date", page = 1, count = 10000) => {
+const getTable = async (
+  table,
+  order = "date",
+  rQuery = [],
+  page = 1,
+  count = 10000
+) => {
+  let querySnapshot;
+  if (rQuery.length) {
+    const [attribute, comparison, value] = rQuery;
+    const q = query(
+      collection(db, table),
+      orderBy(order),
+      // @ts-ignore
+      where(attribute, getComparison(comparison), value)
+    );
+    querySnapshot = await getDocs(q);
+  } else {
+    const first = query(collection(db, table), orderBy(order));
+    querySnapshot = await getDocs(first);
+  }
   const parsedPage = page - 1;
-  const first = query(collection(db, table), orderBy(order));
-  const querySnapshot = await getDocs(first);
   const length = querySnapshot.docs.length;
   return {
     list: querySnapshot.docs

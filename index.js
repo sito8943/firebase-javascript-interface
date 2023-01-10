@@ -62,6 +62,8 @@ const update = async (table, key, value) => {
  */
 const getComparison = (comparison) => {
   switch (comparison) {
+    case "in":
+      return "in";
     default: // equal
       return "==";
   }

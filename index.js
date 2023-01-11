@@ -107,10 +107,17 @@ const getTable = async (
   page = 1,
   count = 10000
 ) => {
+  //* parsing count
   let parsedCount = 10000;
   if (Number.isNaN(count)) console.warn("Invalid count taking 10000");
   if (Number(count) < 0) parsedCount = 10000;
   else parsedCount = Number(count);
+
+  //* parsing page
+  let parsedPage = 1;
+  if (Number.isNaN(page)) console.warn("Invalid page taking 1");
+  if (Number(page) < 0) parsedPage = 1;
+  else parsedPage = Number(page);
   let querySnapshot;
   if (rQuery.length) {
     const [attribute, comparison, value] = rQuery;
@@ -125,11 +132,11 @@ const getTable = async (
     const first = query(collection(db, table), orderBy(order));
     querySnapshot = await getDocs(first);
   }
-  const parsedPage = page - 1;
+  const parsedPageI = page - 1;
   const length = querySnapshot.docs.length;
   return {
     list: querySnapshot.docs
-      .slice(parsedPage * parsedCount, page * parsedCount)
+      .slice(parsedPageI * parsedCount, parsedPage * parsedCount)
       .map((/** @type {{ data: () => object; }} */ doc) => doc.data()),
     totalPages: Math.ceil(length / parsedCount),
   };

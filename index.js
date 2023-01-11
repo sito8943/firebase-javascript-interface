@@ -64,8 +64,8 @@ const getComparison = (comparison) => {
   switch (comparison) {
     case "equal":
       return "==";
-    default: // anyone
-      return comparison;
+    default: // contains
+      return "array-contains";
   }
 };
 

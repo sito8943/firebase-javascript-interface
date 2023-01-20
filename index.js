@@ -62,6 +62,10 @@ const update = async (table, key, value) => {
  */
 const getComparison = (comparison) => {
   switch (comparison) {
+    case "contains-any":
+      return "array-contains-any";
+    case "in":
+      return "in";
     case "equal":
       return "==";
     default: // contains

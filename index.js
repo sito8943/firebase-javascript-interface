@@ -25,7 +25,6 @@ const {
   getDocs,
   getDoc,
   setDoc,
-  orderBy,
   deleteDoc,
 } = require("firebase/firestore");
 
@@ -98,19 +97,12 @@ const getValue = async (table, rQuery) => {
 
 /**
  * @param {string} table
- * @param {string} order
  * @param {string[]} rQuery [attribute, comparison, value]
  * @param {number} page
  * @param {number} count
  * @returns array of objects from firebase
  */
-const getTable = async (
-  table,
-  order = "date",
-  rQuery = [],
-  page = 1,
-  count = 10000
-) => {
+const getTable = async (table, rQuery = [], page = 1, count = 10000) => {
   //* parsing count
   let parsedCount = 10000;
   if (Number.isNaN(count)) console.warn("Invalid count taking 10000");
@@ -127,13 +119,12 @@ const getTable = async (
     const [attribute, comparison, value] = rQuery;
     const q = query(
       collection(db, table),
-      orderBy(order),
       // @ts-ignore
       where(attribute, getComparison(comparison), value)
     );
     querySnapshot = await getDocs(q);
   } else {
-    const first = query(collection(db, table), orderBy(order));
+    const first = query(collection(db, table));
     querySnapshot = await getDocs(first);
   }
   const parsedPageI = page - 1;

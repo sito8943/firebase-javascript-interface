@@ -61,6 +61,10 @@ const update = async (table, key, value) => {
  */
 const getComparison = (comparison) => {
   switch (comparison) {
+    case "has-not":
+      return "has-not";
+    case "has":
+      return "has";
     case "contains-any":
       return "array-contains-any";
     case "in":
@@ -78,15 +82,26 @@ const getComparison = (comparison) => {
  */
 const getValue = async (table, rQuery) => {
   if (typeof rQuery === "object") {
-    const [attribute, comparison, value] = rQuery;
-    const q = query(
-      collection(db, table),
-      // @ts-ignore
-      where(attribute, getComparison(comparison), value)
-    );
-
-    const querySnapshot = await getDocs(q);
-    for (const item of querySnapshot.docs) return item.data();
+    if (rQuery.length === 3) {
+      const [attribute, comparison, value] = rQuery;
+      const q = query(
+        collection(db, table),
+        // @ts-ignore
+        where(attribute, getComparison(comparison), value)
+      );
+      const querySnapshot = await getDocs(q);
+      for (const item of querySnapshot.docs) return item.data();
+    } else if (rQuery.length === 2) {
+      const q = query(collection(db, table));
+      const querySnapshot = await getDocs(q);
+      for (const item of querySnapshot.docs) {
+        const [attribute, comparison] = rQuery;
+        if (comparison === "has" && item.data()[attribute]) return item.data();
+        if (comparison === "has-not" && !item.data()[attribute])
+          return item.data();
+        return undefined;
+      }
+    }
   } else {
     const dataRef = doc(db, table, rQuery);
     const dataSnap = await getDoc(dataRef);
@@ -115,7 +130,7 @@ const getTable = async (table, rQuery = [], page = 1, count = 10000) => {
   if (Number(page) < 0) parsedPage = 1;
   else parsedPage = Number(page);
   let querySnapshot;
-  if (rQuery.length) {
+  if (rQuery.length === 3) {
     const [attribute, comparison, value] = rQuery;
     const q = query(
       collection(db, table),
@@ -131,6 +146,15 @@ const getTable = async (table, rQuery = [], page = 1, count = 10000) => {
   const length = querySnapshot.docs.length;
   return {
     list: querySnapshot.docs
+      .filter((item) => {
+        if (rQuery.length == 2) {
+          const [attribute, comparison] = rQuery;
+          if (comparison === "has" && item.data()[attribute]) return true;
+          if (comparison === "has-not" && !item.data()[attribute]) return true;
+          return false;
+        }
+        return true;
+      })
       .slice(parsedPageI * parsedCount, parsedPage * parsedCount)
       .map((/** @type {{ data: () => object; }} */ doc) => doc.data()),
     totalPages: Math.ceil(length / parsedCount),

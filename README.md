@@ -1,4 +1,4 @@
-# firebase-javascript-interface@0.6.2
+# firebase-javascript-interface@0.9.1
 
 Functions to use firebase cloud firestore database like CRUD (Create Read Update Delete)
 

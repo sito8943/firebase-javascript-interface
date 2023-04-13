@@ -163,18 +163,14 @@ const getTable = async (table, rQuery = [], page = 1, count = 10000) => {
 /**
  *
  * @param {string} table
- * @param {object} newValue
+ * @param {object[]} elements
  */
-const setTable = async (table, newValue) => {
-  for (const key of Object.keys(newValue)) {
-    const dataRef = doc(db, table, key);
-    const dataSnap = await getDoc(dataRef);
-    if (dataSnap.exists()) {
-      const localData = { ...newValue[key] };
-      await setDoc(doc(db, table, key), localData);
-    }
+const setTable = async (table, elements) => {
+  for (const item of elements) {
+    await setDoc(doc(db, table, item.id), {
+      ...elements,
+    });
   }
-  return true;
 };
 
 /**

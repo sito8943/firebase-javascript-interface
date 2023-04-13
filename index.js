@@ -186,43 +186,16 @@ const deleteE = async (table, elements) => {
   for (const element of elements) await deleteDoc(doc(db, table, element));
 };
 
-async function deleteQueryBatch(db, query, resolve) {
-  const snapshot = await query.get();
-
-  const batchSize = snapshot.size;
-  if (batchSize === 0) {
-    // When there are no documents left, we are done
-    resolve();
-    return;
-  }
-
-  // Delete documents in a batch
-  const batch = db.batch();
-  snapshot.docs.forEach((doc) => {
-    batch.delete(doc.ref);
-  });
-  await batch.commit();
-
-  // Recurse on the next process tick, to avoid
-  // exploding the stack.
-  process.nextTick(() => {
-    deleteQueryBatch(db, query, resolve);
-  });
-}
-
 /**
  *
  * @param {string} collectionPath
- * @param {string} batchSize
+ 
  * @returns
  */
-const deleteCollection = async (collectionPath, batchSize) => {
-  const collectionRef = db.collection(collectionPath);
-  const query = collectionRef.orderBy("id").limit(batchSize);
-
-  return new Promise((resolve, reject) => {
-    deleteQueryBatch(db, query, resolve).catch(reject);
-  });
+const deleteCollection = async (collectionPath) => {
+  const { list } = await getTable(collectionPath, [], 1, 10000);
+  for (const element of list)
+    await deleteDoc(doc(db, collectionPath, element.id));
 };
 
 module.exports = {

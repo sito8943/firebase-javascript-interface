@@ -106,12 +106,28 @@ const getValue = async (table, rQuery) => {
       q = query(
         collection(db, table),
         // @ts-ignore
-        ...rQuery.map((localQuery) => {
-          const [attribute, comparison, value] = localQuery;
-          // @ts-ignore
-          return where(attribute, getComparison(comparison), value);
-        })
+        ...rQuery
+          .filter((localQuery) => localQuery.length === 3)
+          .map((localQuery) => {
+            const [attribute, comparison, value] = localQuery;
+            // @ts-ignore
+            return where(attribute, getComparison(comparison), value);
+          })
       );
+      const localQueryFiltering = rQuery.filter(
+        (localQuery) => localQuery.length === 2
+      );
+      const querySnapshot = await getDocs(q);
+      for (const element of querySnapshot.docs) {
+        for (const localQuery of localQueryFiltering) {
+          const [attribute, comparison] = localQuery;
+          if (comparison === "has" && element.data()[attribute])
+            return element.data();
+          if (comparison === "has-not" && !element.data()[attribute])
+            return element.data();
+          return undefined;
+        }
+      }
     }
     const querySnapshot = await getDocs(q);
     for (const item of querySnapshot.docs) return item.data();
@@ -143,17 +159,18 @@ const getTable = async (table, rQuery = [], page = 1, count = 10000) => {
   if (Number(page) < 0) parsedPage = 1;
   else parsedPage = Number(page);
   let querySnapshot;
+  let parsed = [];
   let q = undefined;
   if (rQuery.length && typeof rQuery[0] === "string") {
     if (rQuery.length === 2) {
       q = query(collection(db, table));
       const querySnapshot = await getDocs(q);
+      parsed = [];
       for (const item of querySnapshot.docs) {
         const [attribute, comparison] = rQuery;
-        if (comparison === "has" && item.data()[attribute]) return item.data();
+        if (comparison === "has" && item.data()[attribute]) parsed.push(item);
         if (comparison === "has-not" && !item.data()[attribute])
-          return item.data();
-        return undefined;
+          parsed.push(item);
       }
     }
     const [attribute, comparison, value] = rQuery;
@@ -167,21 +184,35 @@ const getTable = async (table, rQuery = [], page = 1, count = 10000) => {
     q = query(
       collection(db, table),
       // @ts-ignore
-      ...rQuery.map((localQuery) => {
-        const [attribute, comparison, value] = localQuery;
-        // @ts-ignore
-        return where(attribute, getComparison(comparison), value);
-      })
+      ...rQuery
+        .filter((localQuery) => localQuery.length === 3)
+        .map((localQuery) => {
+          const [attribute, comparison, value] = localQuery;
+          // @ts-ignore
+          return where(attribute, getComparison(comparison), value);
+        })
     );
     querySnapshot = await getDocs(q);
+    parsed = [];
+    for (const item of querySnapshot.docs) {
+      rQuery
+        .filter((localQuery) => localQuery.length === 2)
+        .forEach((localQuery) => {
+          const [attribute, comparison] = localQuery;
+          if (comparison === "has" && item.data()[attribute]) parsed.push(item);
+          if (comparison === "has-not" && !item.data()[attribute])
+            parsed.push(item);
+        });
+    }
   } else {
     const first = query(collection(db, table));
     querySnapshot = await getDocs(first);
+    parsed = querySnapshot.docs;
   }
   const parsedPageI = page - 1;
   const length = querySnapshot.docs.length;
   return {
-    list: querySnapshot.docs
+    list: parsed
       .filter((item) => {
         if (rQuery.length == 2) {
           const [attribute, comparison] = rQuery;

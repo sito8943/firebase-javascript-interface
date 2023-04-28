@@ -82,26 +82,39 @@ const getComparison = (comparison) => {
  */
 const getValue = async (table, rQuery) => {
   if (typeof rQuery === "object") {
-    if (rQuery.length === 3) {
+    let q = undefined;
+    if (rQuery.length && typeof rQuery[0] === "string") {
+      if (rQuery.length === 2) {
+        q = query(collection(db, table));
+        const querySnapshot = await getDocs(q);
+        for (const item of querySnapshot.docs) {
+          const [attribute, comparison] = rQuery;
+          if (comparison === "has" && item.data()[attribute])
+            return item.data();
+          if (comparison === "has-not" && !item.data()[attribute])
+            return item.data();
+          return undefined;
+        }
+      }
       const [attribute, comparison, value] = rQuery;
-      const q = query(
+      q = query(
         collection(db, table),
         // @ts-ignore
         where(attribute, getComparison(comparison), value)
       );
-      const querySnapshot = await getDocs(q);
-      for (const item of querySnapshot.docs) return item.data();
-    } else if (rQuery.length === 2) {
-      const q = query(collection(db, table));
-      const querySnapshot = await getDocs(q);
-      for (const item of querySnapshot.docs) {
-        const [attribute, comparison] = rQuery;
-        if (comparison === "has" && item.data()[attribute]) return item.data();
-        if (comparison === "has-not" && !item.data()[attribute])
-          return item.data();
-        return undefined;
-      }
+    } else {
+      q = query(
+        collection(db, table),
+        // @ts-ignore
+        ...rQuery.map((localQuery) => {
+          const [attribute, comparison, value] = localQuery;
+          // @ts-ignore
+          return where(attribute, getComparison(comparison), value);
+        })
+      );
     }
+    const querySnapshot = await getDocs(q);
+    for (const item of querySnapshot.docs) return item.data();
   } else {
     const dataRef = doc(db, table, rQuery);
     const dataSnap = await getDoc(dataRef);
@@ -130,12 +143,35 @@ const getTable = async (table, rQuery = [], page = 1, count = 10000) => {
   if (Number(page) < 0) parsedPage = 1;
   else parsedPage = Number(page);
   let querySnapshot;
-  if (rQuery.length === 3) {
+  let q = undefined;
+  if (rQuery.length && typeof rQuery[0] === "string") {
+    if (rQuery.length === 2) {
+      q = query(collection(db, table));
+      const querySnapshot = await getDocs(q);
+      for (const item of querySnapshot.docs) {
+        const [attribute, comparison] = rQuery;
+        if (comparison === "has" && item.data()[attribute]) return item.data();
+        if (comparison === "has-not" && !item.data()[attribute])
+          return item.data();
+        return undefined;
+      }
+    }
     const [attribute, comparison, value] = rQuery;
-    const q = query(
+    q = query(
       collection(db, table),
       // @ts-ignore
       where(attribute, getComparison(comparison), value)
+    );
+    querySnapshot = await getDocs(q);
+  } else if (rQuery.length && rQuery[0].length) {
+    q = query(
+      collection(db, table),
+      // @ts-ignore
+      ...rQuery.map((localQuery) => {
+        const [attribute, comparison, value] = localQuery;
+        // @ts-ignore
+        return where(attribute, getComparison(comparison), value);
+      })
     );
     querySnapshot = await getDocs(q);
   } else {

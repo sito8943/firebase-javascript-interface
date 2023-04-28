@@ -180,6 +180,7 @@ const getTable = async (table, rQuery = [], page = 1, count = 10000) => {
       where(attribute, getComparison(comparison), value)
     );
     querySnapshot = await getDocs(q);
+    parsed = querySnapshot.docs
   } else if (rQuery.length && rQuery[0].length) {
     q = query(
       collection(db, table),

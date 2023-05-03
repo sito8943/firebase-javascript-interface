@@ -164,23 +164,26 @@ const getTable = async (table, rQuery = [], page = 1, count = 10000) => {
   if (rQuery.length && typeof rQuery[0] === "string") {
     if (rQuery.length === 2) {
       q = query(collection(db, table));
+
       const querySnapshot = await getDocs(q);
       parsed = [];
       for (const item of querySnapshot.docs) {
         const [attribute, comparison] = rQuery;
+        console.log(attribute, comparison);
         if (comparison === "has" && item.data()[attribute]) parsed.push(item);
         if (comparison === "has-not" && !item.data()[attribute])
           parsed.push(item);
       }
+    } else {
+      const [attribute, comparison, value] = rQuery;
+      q = query(
+        collection(db, table),
+        // @ts-ignore
+        where(attribute, getComparison(comparison), value)
+      );
+      querySnapshot = await getDocs(q);
+      parsed = querySnapshot.docs;
     }
-    const [attribute, comparison, value] = rQuery;
-    q = query(
-      collection(db, table),
-      // @ts-ignore
-      where(attribute, getComparison(comparison), value)
-    );
-    querySnapshot = await getDocs(q);
-    parsed = querySnapshot.docs
   } else if (rQuery.length && rQuery[0].length) {
     q = query(
       collection(db, table),
@@ -211,7 +214,7 @@ const getTable = async (table, rQuery = [], page = 1, count = 10000) => {
     parsed = querySnapshot.docs;
   }
   const parsedPageI = page - 1;
-  const length = querySnapshot.docs.length;
+  const length = parsed.length;
   return {
     list: parsed
       .filter((item) => {

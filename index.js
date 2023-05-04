@@ -41,9 +41,12 @@ const update = async (table, key, value) => {
         value.just.forEach((key1, i) => {
           dataToUpdate[key1] = value.value[i];
         });
+      const dataRef = db.collection(table).doc(dataToUpdate.id);
+      await dataRef.update({ ...dataToUpdate });
+    } else {
+      const dataRef = db.collection(table).doc(dataToUpdate.id);
+      await dataRef.update({ ...value });
     }
-    const dataRef = db.collection(table).doc(dataToUpdate.id);
-    await dataRef.update({ ...dataToUpdate });
   }
   return dataToUpdate;
 };

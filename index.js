@@ -32,16 +32,11 @@ const {
  * @param {string} table
  * @param {string} key
  * @param {any} value
- * @param {object} headers
  */
-const insert = async (table, key, value, headers) => {
-  await setDoc(
-    doc(db, table, key),
-    {
-      ...value,
-    },
-    { headers }
-  );
+const insert = async (table, key, value) => {
+  await setDoc(doc(db, table, key), {
+    ...value,
+  });
   return { ...value };
 };
 
@@ -50,7 +45,7 @@ const insert = async (table, key, value, headers) => {
  * @param {string} key
  * @param {any} value
  */
-const update = async (table, key, value, headers) => {
+const update = async (table, key, value) => {
   const dataToUpdate = await getValue(table, key);
   if (dataToUpdate) {
     if (value.just && value.value) {
@@ -64,7 +59,7 @@ const update = async (table, key, value, headers) => {
     const dataRef = doc(db, table, dataToUpdate.id);
     const dataSnap = await getDoc(dataRef);
     if (dataSnap.exists())
-      await setDoc(doc(db, table, key), { ...dataToUpdate }, { headers });
+      await setDoc(doc(db, table, key), { ...dataToUpdate });
   }
   return dataToUpdate;
 };

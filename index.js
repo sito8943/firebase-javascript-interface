@@ -1,48 +1,25 @@
-// @ts-check
+const admin = require("firebase-admin");
 
-const e = require("cors");
-const { initializeApp } = require("firebase/app");
-const { getFirestore } = require("firebase/firestore");
-
-// Initialize Firebase
-var app;
-
-// Initialize Cloud Firestore and get a reference to the service
 var db;
 
-const initDatabase = (
-  /** @type {{apiKey: String; authDomain: String; projectId: String; storageBucket: String; messagingSenderId: String; appId: String}} */ config
-) => {
-  app = initializeApp(config);
-  db = getFirestore(app);
-};
+function initialize(serviceAccount) {
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+  });
 
-const {
-  collection,
-  doc,
-  query,
-  where,
-  getDocs,
-  getDoc,
-  setDoc,
-  deleteDoc,
-} = require("firebase/firestore");
+  db = admin.firestore();
+}
 
 /**
  * @param {string} table
  * @param {string} key
  * @param {any} value
- * @param {object} headers
  */
-const insert = async (table, key, value, headers) => {
-  await setDoc(
-    doc(db, table, key),
-    {
-      ...value,
-    },
-    { headers }
-  );
-  return { ...value };
+const insert = async (table, key, value) => {
+  const collectionRef = db.collection(table);
+  const newDocRef = collectionRef.doc();
+  const result = await newDocRef.set({ ...value, id: newDocRef.id });
+  return result;
 };
 
 /**
@@ -50,7 +27,7 @@ const insert = async (table, key, value, headers) => {
  * @param {string} key
  * @param {any} value
  */
-const update = async (table, key, value, headers) => {
+const update = async (table, key, value) => {
   const dataToUpdate = await getValue(table, key);
   if (dataToUpdate) {
     if (value.just && value.value) {
@@ -61,10 +38,8 @@ const update = async (table, key, value, headers) => {
           dataToUpdate[key1] = value.value[i];
         });
     }
-    const dataRef = doc(db, table, dataToUpdate.id);
-    const dataSnap = await getDoc(dataRef);
-    if (dataSnap.exists())
-      await setDoc(doc(db, table, key), { ...dataToUpdate }, { headers });
+    const dataRef = db.collection(table).doc(dataToUpdate.id);
+    await dataRef.update({ ...dataToUpdate });
   }
   return dataToUpdate;
 };
@@ -84,8 +59,10 @@ const getComparison = (comparison) => {
     case "in":
       return "in";
     case "equal":
+    case "==":
       return "==";
     case "not-equal":
+    case "!=":
       return "!=";
     default: // contains
       return "array-contains";
@@ -98,59 +75,44 @@ const getComparison = (comparison) => {
  */
 async function getValue(table, rQuery) {
   if (typeof rQuery === "object") {
+    const collectionRef = db.collection(table);
     let q = undefined;
     if (rQuery.length && typeof rQuery[0] === "string") {
       if (rQuery.length === 2) {
-        q = query(collection(db, table));
-        const querySnapshot = await getDocs(q);
-        for (const item of querySnapshot.docs) {
-          const [attribute, comparison] = rQuery;
-          if (comparison === "has" && item.data()[attribute])
-            return item.data();
-          if (comparison === "has-not" && !item.data()[attribute])
-            return item.data();
-          return undefined;
-        }
+        const [comparison, attribute] = rQuery;
+        if (comparison === "has")
+          q = collectionRef.where(attribute, "!=", null);
+        else if (comparison === "has-not")
+          q = collectionRef.where(attribute, "==", null);
+      } else {
+        const [attribute, comparison, value] = rQuery;
+        q = collectionRef.where(attribute, getComparison(comparison), value);
       }
-      const [attribute, comparison, value] = rQuery;
-      q = query(
-        collection(db, table),
-        // @ts-ignore
-        where(attribute, getComparison(comparison), value)
-      );
     } else {
-      q = query(
-        collection(db, table),
-        // @ts-ignore
-        ...rQuery
-          .filter((localQuery) => localQuery.length === 3)
-          .map((localQuery) => {
+      q = collectionRef;
+      // @ts-ignore
+      rQuery
+        .filter((localQuery) => localQuery.length === 3)
+        .map((localQuery) => {
+          if (localQuery.length === 3) {
             const [attribute, comparison, value] = localQuery;
             // @ts-ignore
-            return where(attribute, getComparison(comparison), value);
-          })
-      );
-      const localQueryFiltering = rQuery.filter(
-        (localQuery) => localQuery.length === 2
-      );
-      const querySnapshot = await getDocs(q);
-      for (const element of querySnapshot.docs) {
-        for (const localQuery of localQueryFiltering) {
-          const [attribute, comparison] = localQuery;
-          if (comparison === "has" && element.data()[attribute])
-            return element.data();
-          if (comparison === "has-not" && !element.data()[attribute])
-            return element.data();
-          return undefined;
-        }
-      }
+            q.where(attribute, getComparison(comparison), value);
+          } else {
+            const [attribute, comparison] = rQuery;
+            if (comparison === "has")
+              q = collectionRef.where(attribute, "!=", null);
+            else if (comparison === "has-not")
+              q = collectionRef.where(attribute, "in", [null, undefined]);
+          }
+        });
     }
-    const querySnapshot = await getDocs(q);
+    const querySnapshot = await q.get();
     for (const item of querySnapshot.docs) return item.data();
   } else {
-    const dataRef = doc(db, table, rQuery);
-    const dataSnap = await getDoc(dataRef);
-    if (dataSnap.exists()) return dataSnap.data();
+    const dataRef = db.collection(table).doc(rQuery);
+    const dataSnap = await dataRef.get();
+    if (dataSnap.exists) return dataSnap.data();
     return undefined;
   }
 }
@@ -176,122 +138,80 @@ const getTable = async (table, rQuery = [], page = 1, count = 10000) => {
   else parsedPage = Number(page);
   let querySnapshot;
   let parsed = [];
+  const collectionRef = db.collection(table);
   let q = undefined;
   if (rQuery.length && typeof rQuery[0] === "string") {
     if (rQuery.length === 2) {
-      q = query(collection(db, table));
-
-      const querySnapshot = await getDocs(q);
-      parsed = [];
-      for (const item of querySnapshot.docs) {
-        const [attribute, comparison] = rQuery;
-        console.log(attribute, comparison);
-        if (comparison === "has" && item.data()[attribute]) parsed.push(item);
-        if (comparison === "has-not" && !item.data()[attribute])
-          parsed.push(item);
-      }
+      const [comparison, attribute] = rQuery;
+      if (comparison === "has") q = collectionRef.where(attribute, "!=", null);
+      else if (comparison === "has-not")
+        q = collectionRef.where(attribute, "==", null);
     } else {
       const [attribute, comparison, value] = rQuery;
-      q = query(
-        collection(db, table),
-        // @ts-ignore
-        where(attribute, getComparison(comparison), value)
-      );
-      querySnapshot = await getDocs(q);
-      parsed = querySnapshot.docs;
+      q = collectionRef.where(attribute, getComparison(comparison), value);
     }
   } else if (rQuery.length && rQuery[0].length) {
-    q = query(
-      collection(db, table),
-      // @ts-ignore
-      ...rQuery
-        .filter((localQuery) => localQuery.length === 3)
-        .map((localQuery) => {
+    q = collectionRef;
+    // @ts-ignore
+    rQuery
+      .filter((localQuery) => localQuery.length === 3)
+      .map((localQuery) => {
+        if (localQuery.length === 3) {
           const [attribute, comparison, value] = localQuery;
           // @ts-ignore
-          return where(attribute, getComparison(comparison), value);
-        })
-    );
-    querySnapshot = await getDocs(q);
-    parsed = [];
-    for (const item of querySnapshot.docs) {
-      rQuery
-        .filter((localQuery) => localQuery.length === 2)
-        .forEach((localQuery) => {
-          const [attribute, comparison] = localQuery;
-          if (comparison === "has" && item.data()[attribute]) parsed.push(item);
-          if (comparison === "has-not" && !item.data()[attribute])
-            parsed.push(item);
-        });
-    }
-  } else {
-    const first = query(collection(db, table));
-    querySnapshot = await getDocs(first);
-    parsed = querySnapshot.docs;
-  }
+          q.where(attribute, getComparison(comparison), value);
+        } else {
+          const [attribute, comparison] = rQuery;
+          if (comparison === "has")
+            q = collectionRef.where(attribute, "!=", null);
+          else if (comparison === "has-not")
+            q = collectionRef.where(attribute, "in", [null, undefined]);
+        }
+      });
+  } else q = collectionRef;
+  querySnapshot = await q.get();
+  parsed = querySnapshot.docs;
   const parsedPageI = page - 1;
   const length = parsed.length;
   return {
     list: parsed
-      .filter((item) => {
-        if (rQuery.length == 2) {
-          const [attribute, comparison] = rQuery;
-          if (comparison === "has" && item.data()[attribute]) return true;
-          if (comparison === "has-not" && !item.data()[attribute]) return true;
-          return false;
-        }
-        return true;
-      })
       .slice(parsedPageI * parsedCount, parsedPage * parsedCount)
       .map((/** @type {{ data: () => object; }} */ doc) => doc.data()),
     totalPages: Math.ceil(length / parsedCount),
   };
 };
+
 /**
  *
  * @param {string} table
- * @param {object[]} elements
+ * @param {string[]} documents
  */
-const setTable = async (table, elements, headers) => {
-  for (const item of elements) {
-    await setDoc(
-      doc(db, table, item.id),
-      {
-        ...elements,
-      },
-      { headers }
-    );
-  }
+const deleteDocuments = async (table, documents) => {
+  const collectionRef = db.collection(table);
+  const querySnapshot = await collectionRef.get();
+  for (const doc of querySnapshot.docs)
+    if (documents.find((document) => document === doc.data().id))
+      doc.ref.delete();
 };
 
 /**
  *
  * @param {string} table
- * @param {string[]} elements
- */
-const deleteE = async (table, elements) => {
-  for (const element of elements) await deleteDoc(doc(db, table, element));
-};
-
-/**
- *
- * @param {string} collectionPath
  
  * @returns
  */
-const deleteCollection = async (collectionPath) => {
-  const { list } = await getTable(collectionPath, [], 1, 10000);
-  for (const element of list)
-    await deleteDoc(doc(db, collectionPath, element.id));
+const deleteCollection = async (table) => {
+  const collectionRef = db.collection(table);
+  const querySnapshot = await collectionRef.get();
+  for (const doc of querySnapshot.docs) doc.ref.delete();
 };
 
 module.exports = {
   insert,
+  update,
   getValue,
   getTable,
-  update,
-  setTable,
-  deleteE,
-  initDatabase,
+  deleteDocuments,
   deleteCollection,
+  initialize,
 };

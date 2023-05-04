@@ -50,7 +50,7 @@ const insert = async (table, key, value, headers) => {
  * @param {string} key
  * @param {any} value
  */
-const update = async (table, key, value) => {
+const update = async (table, key, value, headers) => {
   const dataToUpdate = await getValue(table, key);
   if (dataToUpdate) {
     if (value.just && value.value) {
@@ -252,7 +252,7 @@ const getTable = async (table, rQuery = [], page = 1, count = 10000) => {
  * @param {string} table
  * @param {object[]} elements
  */
-const setTable = async (table, elements) => {
+const setTable = async (table, elements, headers) => {
   for (const item of elements) {
     await setDoc(
       doc(db, table, item.id),

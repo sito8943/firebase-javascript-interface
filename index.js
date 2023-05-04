@@ -2,6 +2,11 @@ const admin = require("firebase-admin");
 
 var db;
 
+/**
+ *
+ * @param {any} serviceAccount
+ 
+ */
 function initialize(serviceAccount) {
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),

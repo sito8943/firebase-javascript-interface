@@ -1,4 +1,4 @@
-# firebase-javascript-interface@1.1.2
+# firebase-javascript-interface@1.1.3
 
 Functions to use firebase cloud firestore database like CRUD (Create Read Update Delete)
 
@@ -10,7 +10,7 @@ _To initialize the database with service account json_
 
 Params:
 
-- serviceAccount {String} path of the service account json
+- serviceAccount {object} service account json
 
 # insert(table, value)
 
@@ -56,10 +56,13 @@ Params:
 
 _To erase elements from a collection_
 Params:
+
 - table {string} the collection path ex: "users"
 - documents {string[]} array with the list of ids
 
 # deleteCollection
+
 _To clean a entire collection_
 Params:
+
 - table {string} the collection path ex: "users"

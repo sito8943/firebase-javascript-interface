@@ -55,9 +55,9 @@ const update = async (table, key, value) => {
 const getComparison = (comparison) => {
   switch (comparison) {
     case "has-not":
-      return "has-not";
+      return "==";
     case "has":
-      return "has";
+      return "!=";
     case "contains-any":
       return "array-contains-any";
     case "in":
@@ -82,34 +82,21 @@ async function getValue(table, rQuery) {
     const collectionRef = db.collection(table);
     let q = undefined;
     if (rQuery.length && typeof rQuery[0] === "string") {
-      if (rQuery.length === 2) {
-        const [comparison, attribute] = rQuery;
-        if (comparison === "has")
-          q = collectionRef.where(attribute, "!=", null);
-        else if (comparison === "has-not")
-          q = collectionRef.where(attribute, "==", null);
-      } else {
-        const [attribute, comparison, value] = rQuery;
-        q = collectionRef.where(attribute, getComparison(comparison), value);
-      }
+      const [attribute, comparison, value] = rQuery;
+      q = collectionRef.where(
+        attribute,
+        getComparison(comparison),
+        value || null
+      );
     } else {
       q = collectionRef;
       // @ts-ignore
-      rQuery
-        .filter((localQuery) => localQuery.length === 3)
-        .map((localQuery) => {
-          if (localQuery.length === 3) {
-            const [attribute, comparison, value] = localQuery;
-            // @ts-ignore
-            q.where(attribute, getComparison(comparison), value);
-          } else {
-            const [attribute, comparison] = rQuery;
-            if (comparison === "has")
-              q = collectionRef.where(attribute, "!=", null);
-            else if (comparison === "has-not")
-              q = collectionRef.where(attribute, "in", [null, undefined]);
-          }
-        });
+      rQuery.map((localQuery) => {
+        const [attribute, comparison, value] = localQuery;
+
+        // @ts-ignore
+        q = q.where(attribute, getComparison(comparison), value || null);
+      });
     }
     const querySnapshot = await q.get();
     for (const item of querySnapshot.docs) return item.data();
@@ -145,33 +132,20 @@ const getTable = async (table, rQuery = [], page = 1, count = 10000) => {
   const collectionRef = db.collection(table);
   let q = undefined;
   if (rQuery.length && typeof rQuery[0] === "string") {
-    if (rQuery.length === 2) {
-      const [comparison, attribute] = rQuery;
-      if (comparison === "has") q = collectionRef.where(attribute, "!=", null);
-      else if (comparison === "has-not")
-        q = collectionRef.where(attribute, "==", null);
-    } else {
-      const [attribute, comparison, value] = rQuery;
-      q = collectionRef.where(attribute, getComparison(comparison), value);
-    }
+    const [attribute, comparison, value] = rQuery;
+    q = collectionRef.where(
+      attribute,
+      getComparison(comparison),
+      value || null
+    );
   } else if (rQuery.length && rQuery[0].length) {
     q = collectionRef;
     // @ts-ignore
-    rQuery
-      .filter((localQuery) => localQuery.length === 3)
-      .map((localQuery) => {
-        if (localQuery.length === 3) {
-          const [attribute, comparison, value] = localQuery;
-          // @ts-ignore
-          q.where(attribute, getComparison(comparison), value);
-        } else {
-          const [attribute, comparison] = rQuery;
-          if (comparison === "has")
-            q = collectionRef.where(attribute, "!=", null);
-          else if (comparison === "has-not")
-            q = collectionRef.where(attribute, "in", [null, undefined]);
-        }
-      });
+    rQuery.map((localQuery) => {
+      const [attribute, comparison, value] = localQuery;
+      // @ts-ignore
+      q = q.where(attribute, getComparison(comparison), value || null);
+    });
   } else q = collectionRef;
   querySnapshot = await q.get();
   parsed = querySnapshot.docs;

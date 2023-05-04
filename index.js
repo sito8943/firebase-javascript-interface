@@ -12,10 +12,9 @@ function initialize(serviceAccount) {
 
 /**
  * @param {string} table
- * @param {string} key
- * @param {any} value
+ * @param {object} value
  */
-const insert = async (table, key, value) => {
+const insert = async (table, value) => {
   const collectionRef = db.collection(table);
   const newDocRef = collectionRef.doc();
   const result = await newDocRef.set({ ...value, id: newDocRef.id });

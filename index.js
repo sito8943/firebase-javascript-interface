@@ -46,13 +46,22 @@ const insert = async (table, key, value) => {
  * @param {any} value
  */
 const update = async (table, key, value) => {
-  const dataRef = doc(db, table, key);
-  const dataSnap = await getDoc(dataRef);
-  if (dataSnap.exists()) {
-    await setDoc(doc(db, table, key), { ...value });
-    return { ...value };
+  const dataToUpdate = await getValue(table, key);
+  if (dataToUpdate) {
+    if (value.just && value.value) {
+      if (typeof value.just === "string")
+        dataToUpdate[value.just] = value.value;
+      else
+        value.just.forEach((key1, i) => {
+          dataToUpdate[key1] = value.value[i];
+        });
+    }
+    const dataRef = doc(db, table, dataToUpdate.id);
+    const dataSnap = await getDoc(dataRef);
+    if (dataSnap.exists())
+      await setDoc(doc(db, table, key), { ...dataToUpdate });
   }
-  return undefined;
+  return dataToUpdate;
 };
 
 /**
@@ -71,6 +80,8 @@ const getComparison = (comparison) => {
       return "in";
     case "equal":
       return "==";
+    case "not-equal":
+      return "!=";
     default: // contains
       return "array-contains";
   }
@@ -80,7 +91,7 @@ const getComparison = (comparison) => {
  * @param {string} table
  * @param {any} rQuery
  */
-const getValue = async (table, rQuery) => {
+async function getValue(table, rQuery) {
   if (typeof rQuery === "object") {
     let q = undefined;
     if (rQuery.length && typeof rQuery[0] === "string") {
@@ -137,7 +148,7 @@ const getValue = async (table, rQuery) => {
     if (dataSnap.exists()) return dataSnap.data();
     return undefined;
   }
-};
+}
 
 /**
  * @param {string} table

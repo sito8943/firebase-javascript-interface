@@ -59,6 +59,18 @@ const getComparison = (comparison) => {
   switch (comparison) {
     case "has-not":
       return "==";
+    case "<=":
+      return "<=";
+    case "<":
+    case "less-than":
+    case "less than":
+      return "<";
+    case ">=":
+      return ">";
+    case ">":
+    case "greater-than":
+    case "greater than":
+      return ">";
     case "has":
       return "!=";
     case "contains-any":

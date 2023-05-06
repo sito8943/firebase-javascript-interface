@@ -212,7 +212,7 @@ const deleteCollection = async (table) => {
 /**
  *
  * @param {string} path
- * @param {string} data
+ * @param {object} data
  * @returns
  */
 const writeRealtime = async (path, data) => {

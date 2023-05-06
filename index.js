@@ -228,9 +228,9 @@ const writeRealtime = async (path, data) => {
  */
 const readRealtime = async (path) => {
   const ref = realtime.ref(path);
-  ref.once("value", (snapshot) => {
-    return snapshot;
-  });
+  const snapshot = await ref.once('value');
+  const value = snapshot.val();
+  return value
 };
 
 module.exports = {

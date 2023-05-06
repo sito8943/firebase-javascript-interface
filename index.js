@@ -228,9 +228,20 @@ const writeRealtime = async (path, data) => {
  */
 const readRealtime = async (path) => {
   const ref = realtime.ref(path);
-  const snapshot = await ref.once('value');
+  const snapshot = await ref.once("value");
   const value = snapshot.val();
-  return value
+  return value;
+};
+
+/**
+ *
+ * @param {string} path
+ * @returns
+ */
+const deleteRealtime = async (path) => {
+  const ref = realtime.ref(path);
+  await ref.remove();
+  return true;
 };
 
 module.exports = {
@@ -243,4 +254,5 @@ module.exports = {
   initialize,
   readRealtime,
   writeRealtime,
+  deleteRealtime,
 };

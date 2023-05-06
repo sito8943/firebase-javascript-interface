@@ -1,18 +1,21 @@
-# firebase-javascript-interface@1.1.6
+# firebase-javascript-interface@1.1.12
 
-Functions to use firebase cloud firestore database like CRUD (Create Read Update Delete)
+Functions to use firebase cloud firestore and realtime database like CRUD (Create Read Update Delete)
 
-## Functions (Now using firebase-admin)
+# Functions (Now using firebase-admin)
 
-# initialize(serviceAccount)
+## Cloud Firestore
+
+### initialize(serviceAccount, databaseURL)
 
 _To initialize the database with service account json_
 
 Params:
 
 - serviceAccount {object} service account json
+- databaseURL {string} the url of the realtime database default value = ""
 
-# insert(table, value)
+### insert(table, value)
 
 _To insert new objects to the db_
 
@@ -23,7 +26,7 @@ Params:
 - table {string} the collection path ex: "users"
 - value {object} the object to save ex: { user: "sito"}
 
-# update(table, key, value)
+### update(table, key, value)
 
 _To update an element_
 Params:
@@ -34,7 +37,7 @@ Params:
 
 _See firestore [queries structure](https://cloud.google.com/firestore/docs/query-data/get-data)_
 
-# getValue(table, rQuery)
+### getValue(table, rQuery)
 
 _To fetch a single value from db_
 Params:
@@ -42,7 +45,7 @@ Params:
 - table {string} the collection path ex: "users"
 - rQuery {any} the query to find the element ex: ["id", "equal", "sito"] or [["id", "equal", "sito"],["has", "name"]]
 
-# getTable(table, rQuery, page, count)
+### getTable(table, rQuery, page, count)
 
 _To fetch a entire collection_
 Params:
@@ -52,7 +55,7 @@ Params:
 - page {number} to begin at page position
 - count {number} count of items to obtain (max: 10000)
 
-# deleteDocuments(table, documents)
+### deleteDocuments(table, documents)
 
 _To erase elements from a collection_
 Params:
@@ -60,9 +63,33 @@ Params:
 - table {string} the collection path ex: "users"
 - documents {string[]} array with the list of ids
 
-# deleteCollection
+### deleteCollection(table)
 
 _To clean a entire collection_
 Params:
 
 - table {string} the collection path ex: "users"
+
+## Realtime database
+
+### writeRealtime(path, data)
+
+_To set a value_
+Params:
+
+- path {string} the path to set or update
+- data {object} the data to save
+
+### readRealtime(path)
+
+_To read a value_
+Params:
+
+- path {string} the path to read
+
+### deleteRealtime(path)
+
+_To remove a value_
+Params:
+
+- path {string} the path to remove

@@ -1,18 +1,26 @@
 const admin = require("firebase-admin");
 
 var db;
+var realtime;
 
 /**
  *
  * @param {any} serviceAccount
  
  */
-function initialize(serviceAccount) {
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-  });
+function initialize(serviceAccount, databaseURL = "") {
+  if (databaseURL.length)
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+      databaseURL,
+    });
+  else
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+    });
 
   db = admin.firestore();
+  if (databaseURL) realtime = admin.database();
 }
 
 /**
@@ -197,6 +205,32 @@ const deleteCollection = async (table) => {
   const collectionRef = db.collection(table);
   const querySnapshot = await collectionRef.get();
   for (const doc of querySnapshot.docs) doc.ref.delete();
+};
+
+//* REALTIME DATABASE
+
+/**
+ *
+ * @param {string} path
+ * @param {string} data
+ * @returns
+ */
+export const writeRealtime = async (path, data) => {
+  const ref = realtime.ref(path);
+  ref.set(data);
+  return data;
+};
+
+/**
+ *
+ * @param {string} path
+ * @returns
+ */
+export const readRealtime = async (path) => {
+  const ref = realtime.ref(path);
+  ref.once("value", (snapshot) => {
+    return snapshot;
+  });
 };
 
 module.exports = {

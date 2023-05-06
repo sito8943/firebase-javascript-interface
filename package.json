@@ -13,6 +13,8 @@
   "keywords": [
     "firebase",
     "firebase-admin",
+    "cloud-firestore",
+    "realtime-database",
     "node",
     "functions",
     "class"

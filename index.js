@@ -241,4 +241,6 @@ module.exports = {
   deleteDocuments,
   deleteCollection,
   initialize,
+  readRealtime,
+  writeRealtime,
 };

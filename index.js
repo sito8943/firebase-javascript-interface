@@ -215,7 +215,7 @@ const deleteCollection = async (table) => {
  * @param {string} data
  * @returns
  */
-export const writeRealtime = async (path, data) => {
+const writeRealtime = async (path, data) => {
   const ref = realtime.ref(path);
   ref.set(data);
   return data;
@@ -226,7 +226,7 @@ export const writeRealtime = async (path, data) => {
  * @param {string} path
  * @returns
  */
-export const readRealtime = async (path) => {
+const readRealtime = async (path) => {
   const ref = realtime.ref(path);
   ref.once("value", (snapshot) => {
     return snapshot;

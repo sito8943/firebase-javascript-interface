@@ -85,6 +85,8 @@ const getComparison = (comparison) => {
       return "array-contains-any";
     case "in":
       return "in";
+    case "not-in":
+      return "not-in";
     case "equal":
     case "==":
       return "==";

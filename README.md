@@ -1,4 +1,4 @@
-# firebase-javascript-interface@1.2.1
+# firebase-javascript-interface@1.2.2
 
 Functions to use firebase cloud firestore and realtime database like CRUD (Create Read Update Delete)
 

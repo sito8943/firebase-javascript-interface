@@ -2,13 +2,12 @@ const { fetch } = require("./queries/table");
 const { insert } = require("./queries/insert");
 const firebaseApplication = require("./connection");
 
-const db = firebaseApplication.db;
-
 /**
  * @param {string} table
  * @param {any} value
  */
 const update = async (table, value) => {
+  const db = firebaseApplication.db;
   const { list } = await fetch(table, ["id", "==", value.id]);
   const [dataToUpdate] = list;
   if (dataToUpdate) {
@@ -35,6 +34,7 @@ const update = async (table, value) => {
  * @param {string[]} documents
  */
 const deleteDocuments = async (table, documents) => {
+  const db = firebaseApplication.db;
   const collectionRef = db.collection(table);
   const querySnapshot = await collectionRef.get();
   for (const doc of querySnapshot.docs)
@@ -49,6 +49,7 @@ const deleteDocuments = async (table, documents) => {
  * @returns
  */
 const deleteCollection = async (table) => {
+  const db = firebaseApplication.db;
   const collectionRef = db.collection(table);
   const querySnapshot = await collectionRef.get();
   for (const doc of querySnapshot.docs) doc.ref.delete();
@@ -63,6 +64,7 @@ const deleteCollection = async (table) => {
  * @returns
  */
 const writeRealtime = async (path, data) => {
+  const realtime = firebaseApplication.realtime;
   const ref = realtime.ref(path);
   ref.set(data);
   return data;
@@ -74,6 +76,7 @@ const writeRealtime = async (path, data) => {
  * @returns
  */
 const readRealtime = async (path) => {
+  const realtime = firebaseApplication.realtime;
   const ref = realtime.ref(path);
   const snapshot = await ref.once("value");
   const value = snapshot.val();
@@ -86,6 +89,7 @@ const readRealtime = async (path) => {
  * @returns
  */
 const deleteRealtime = async (path) => {
+  const realtime = firebaseApplication.realtime;
   const ref = realtime.ref(path);
   await ref.remove();
   return true;

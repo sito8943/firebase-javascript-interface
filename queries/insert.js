@@ -10,8 +10,8 @@ const insert = async (table, value) => {
   const db = firebaseApplication.db;
   const collectionRef = db.collection(table);
   const newDocRef = collectionRef.doc();
-  const result = await newDocRef.set({ ...value, id: newDocRef.id });
-  return result;
+  await newDocRef.set({ ...value, id: newDocRef.id });
+  return newDocRef.id;
 };
 
 module.exports = { insert };

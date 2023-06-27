@@ -33,7 +33,7 @@ const fetch = async (
   if (rQuery.length && typeof rQuery[0] === "string") {
     const [attribute, comparison, value] = rQuery;
     q = firestoreQuery(
-      q,
+      collectionRef,
       attribute,
       getComparison(comparison),
       value,

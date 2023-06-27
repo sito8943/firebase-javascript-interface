@@ -6,7 +6,8 @@ const { insert } = require("./queries/insert");
  * @param {any} value
  */
 const update = async (table, value) => {
-  const dataToUpdate = await getValue(table, value.id);
+  const { list } = await fetch(table, ["id", "==", value.id]);
+  const [dataToUpdate] = list;
   if (dataToUpdate) {
     if (value.just && value.value) {
       if (typeof value.just === "string")

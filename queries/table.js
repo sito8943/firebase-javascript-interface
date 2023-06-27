@@ -32,7 +32,7 @@ const fetch = async (
   // if rQuery is an array of 3 string is a simple query
   if (rQuery.length && typeof rQuery[0] === "string") {
     const [attribute, comparison, value] = rQuery;
-    q = firestoreQuery(
+    q = await firestoreQuery(
       collectionRef,
       attribute,
       getComparison(comparison),
@@ -44,10 +44,10 @@ const fetch = async (
   } else if (rQuery.length && rQuery[0].length) {
     q = collectionRef;
     // @ts-ignore
-    rQuery.map((localQuery) => {
+    for (const localQuery of rQuery) {
       const [attribute, comparison, value] = localQuery;
       // @ts-ignore
-      q = firestoreQuery(
+      q = await firestoreQuery(
         q,
         attribute,
         getComparison(comparison),
@@ -56,7 +56,7 @@ const fetch = async (
         count,
         orderBy
       );
-    });
+    }
   } else q = collectionRef;
   querySnapshot = await q.get();
   parsed = querySnapshot.docs;

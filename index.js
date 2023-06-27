@@ -1,5 +1,8 @@
 const { fetch } = require("./queries/table");
 const { insert } = require("./queries/insert");
+const firebaseApplication = require("./connection");
+
+const db = firebaseApplication.db;
 
 /**
  * @param {string} table

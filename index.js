@@ -3,11 +3,10 @@ const { insert } = require("./queries/insert");
 
 /**
  * @param {string} table
- * @param {string} key
  * @param {any} value
  */
-const update = async (table, key, value) => {
-  const dataToUpdate = await getValue(table, key);
+const update = async (table, value) => {
+  const dataToUpdate = await getValue(table, value.id);
   if (dataToUpdate) {
     if (value.just && value.value) {
       if (typeof value.just === "string")

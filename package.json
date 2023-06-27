@@ -1,6 +1,6 @@
 {
   "name": "firebase-javascript-interface",
-  "version": "2.1.10",
+  "version": "2.1.11",
   "description": "firebase-javascript-interface",
   "main": "index.js",
   "scripts": {

@@ -7,7 +7,7 @@ async function firestoreQuery(
   count = 10000,
   orderBy = ""
 ) {
-  let q = collectionRef.where(attribute, comparison, value || null);
+  let q = collectionRef.where(attribute, operator, value || null);
   if (orderBy.length) q = q.orderBy(orderBy);
   if (count && !page) q = q.limit(count);
   if (page && count) q = q.startAt((page + 1) * count);

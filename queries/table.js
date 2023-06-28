@@ -42,16 +42,15 @@ const fetch = async (
       q = await firestoreQuery(q, attribute, getComparison(comparison), value);
     }
   }
-  if (orderBy.length) q = q.orderBy(orderBy);
-  if (count && !page) q = q.limit(count);
-  if (page && count) q = q.startAt((page + 1) * count);
+  if (orderBy.length) q = q.orderBy(orderBy, "desc");
   querySnapshot = await q.get();
   parsed = querySnapshot.docs;
   const length = parsed.length;
   return {
-    list: parsed.map((/** @type {{ data: () => object; }} */ doc) =>
-      doc.data()
-    ),
+    list: parsed
+      .slice(page * count, (page + 1) * count)
+      .map((/** @type {{ data: () => object; }} */ doc) => doc.data()),
+    totalElements: length,
     totalPages: Math.ceil(length / count),
   };
 };

@@ -28,39 +28,25 @@ const fetch = async (
   let parsed = [];
   const db = firebaseApplication.db;
   const collectionRef = db.collection(table);
-  let q = undefined;
+  let q = collectionRef;
   // if rQuery is an array of 3 string is a simple query
   if (rQuery.length && typeof rQuery[0] === "string") {
     const [attribute, comparison, value] = rQuery;
-    q = await firestoreQuery(
-      collectionRef,
-      attribute,
-      getComparison(comparison),
-      value,
-      page,
-      count,
-      orderBy
-    );
+    q = await firestoreQuery(q, attribute, getComparison(comparison), value);
   } else if (rQuery.length && rQuery[0].length) {
     q = collectionRef;
     // @ts-ignore
     for (const localQuery of rQuery) {
       const [attribute, comparison, value] = localQuery;
       // @ts-ignore
-      q = await firestoreQuery(
-        q,
-        attribute,
-        getComparison(comparison),
-        value,
-        page,
-        count,
-        orderBy
-      );
+      q = await firestoreQuery(q, attribute, getComparison(comparison), value);
     }
-  } else q = collectionRef;
+  }
+  if (orderBy.length) q = q.orderBy(orderBy);
+  if (count && !page) q = q.limit(count);
+  if (page && count) q = q.startAt((page + 1) * count);
   querySnapshot = await q.get();
   parsed = querySnapshot.docs;
-  const parsedPageI = page - 1;
   const length = parsed.length;
   return {
     list: parsed.map((/** @type {{ data: () => object; }} */ doc) =>

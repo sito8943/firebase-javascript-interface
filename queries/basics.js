@@ -4,7 +4,9 @@ async function firestoreQuery(
   operator = "==",
   value = null
 ) {
-  let q = collectionRef.where(attribute, operator, value || null);
+  let q = collectionRef
+    .where(attribute, operator, value || null)
+    .orderBy(attribute);
   return q;
 }
 

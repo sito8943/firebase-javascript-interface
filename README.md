@@ -26,6 +26,17 @@ Params:
 - table {string} the collection path ex: "users"
 - value {object} the object to save ex: { user: "sito"}
 
+### hardIsert(table, value)
+
+_To insert an object to the db with a specific id_
+
+_If the collection doesn't exist, it will be created_
+
+Params:
+
+- table {string} the collection path ex: "users"
+- value {object} the object to save ex: { user: "sito", id:"myId"}
+
 ### update(table, key, value)
 
 _To update an element_

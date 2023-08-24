@@ -14,4 +14,17 @@ const insert = async (table, value) => {
   return newDocRef.id;
 };
 
-module.exports = { insert };
+/**
+ * @param {string} table
+ * @param {object} value
+ */
+const hardInsert = async (table, value) => {
+  console.assert(typeof table === "string", "collection must be string");
+  console.assert(value.id !== undefined, "item must have an id");
+  const db = firebaseApplication.db;
+  const collectionRef = db.collection(table);
+  await collectionRef.doc(value.id).set({ ...value });
+  return value.id;
+};
+
+module.exports = { insert, hardInsert };

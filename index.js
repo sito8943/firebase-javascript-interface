@@ -1,5 +1,5 @@
 const { fetch } = require("./queries/table");
-const { insert } = require("./queries/insert");
+const { insert, hardInsert } = require("./queries/insert");
 const firebaseApplication = require("./connection");
 
 /**
@@ -98,6 +98,7 @@ const deleteRealtime = async (path) => {
 module.exports = {
   fetch,
   insert,
+  hardInsert,
   update,
   deleteDocuments,
   deleteCollection,
